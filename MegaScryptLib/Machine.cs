@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
+using System.IO;
 using Antlr4.Runtime;
-using Antlr4.Runtime.Misc;
-using Antlr4.Runtime.Tree;
+
 namespace MegaScrypt
 {
     public class Machine
@@ -27,8 +26,9 @@ namespace MegaScrypt
             DNEScryptLexer lexer = new DNEScryptLexer(input);
             CommonTokenStream tokens = new CommonTokenStream(lexer);
             DNEScryptParser parser = new DNEScryptParser(tokens);
-
+            parser.AddErrorListener(new ThrowErrorListener());
             DNEScryptParser.ProgramContext root = parser.program();
+
             
             object result = root.Accept(processor);
             return result;
@@ -45,6 +45,22 @@ namespace MegaScrypt
 
             object result = root.Accept(processor);
             return result;
+        }
+
+        class ThrowErrorListener : BaseErrorListener, IAntlrErrorListener<int>
+        {
+            public override void SyntaxError(TextWriter output, IRecognizer recognizer, IToken offendingSymbol,
+                int line, int charPositionInLine, string msg, RecognitionException e)
+            {
+                throw new InvalidOperationException(null);
+            }
+
+            public void SyntaxError(TextWriter output, IRecognizer recognizer, int offendingSymbol, int line,
+                int charPositionInLine, string msg, RecognitionException e)
+            {
+                throw new InvalidOperationException(null);
+            }
+
         }
     }
 

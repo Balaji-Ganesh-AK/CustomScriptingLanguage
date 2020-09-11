@@ -97,4 +97,22 @@ public interface IDNEScryptVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitExpression([NotNull] DNEScryptParser.ExpressionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DNEScryptParser.object"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitObject([NotNull] DNEScryptParser.ObjectContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DNEScryptParser.objectPair"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitObjectPair([NotNull] DNEScryptParser.ObjectPairContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="DNEScryptParser.objectGet"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitObjectGet([NotNull] DNEScryptParser.ObjectGetContext context);
 }

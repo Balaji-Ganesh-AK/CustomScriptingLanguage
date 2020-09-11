@@ -8,8 +8,9 @@ statement:
 		(declaration |
 		assignment| increment | bincrement) ';' |ifStmt 
 ;
-declaration: 'var' Id('=' expression)?;
-assignment: Id '=' expression |
+declaration: 'var' (Id|objectGet)('=' (expression|object))?;
+assignment: (Id  | objectGet) '=' (expression|object)|
+			Id '=' expression |
 			Id  '/=' expression |
 			Id '*=' expression |
 			Id '+=' expression |
@@ -37,10 +38,15 @@ expression:
 		bincrement | 
 		Id ('++' |'--')|
 		Null|
-		String
+		String|
+		objectGet
 		
 		 
 ;
+
+object: '{' (objectPair ','?)* '}';
+objectPair: Id ':' (expression|object);
+objectGet: Id ('.' Id)+;
 
 /* Lexer Rules */
 
@@ -76,6 +82,6 @@ LessThan:			'<';
 Null:				'null';
 Id:					('_'| Letter)('_'|Letter|Digit)* ;
 Number:				Digit+('.' Digit*)?; 
-String:             ["] ( ~["\r\n\\] | '\\' ~[\r\n] )* ["];
+String:             '"' ('\\"' | ~('\r' | '\n'))*? '"';
 WhiteSpace:       [ \t\r\n]+ -> skip;
 		

@@ -50,7 +50,7 @@ namespace MegaScrypt
                 return;
             }
             
-             throw new NotImplementedException($"Variable \"{varName}\" is not declared.");
+            throw new NotImplementedException($"Variable \"{varName}\" is not declared.");
             
         }
 

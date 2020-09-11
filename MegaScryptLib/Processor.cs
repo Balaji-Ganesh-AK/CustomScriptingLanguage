@@ -41,6 +41,19 @@ namespace MegaScrypt
                 value = context.expression().Accept(this);
             }
 
+            if (context.@object() != null)
+            {
+                value = context.@object().Accept(this);
+            }
+
+            if (context.objectGet() != null)
+            {
+                var id = context.objectGet().Id();
+                Object ret = (Object) GetObjectGetID(id);
+                ret.Set(id[id.Length-1].Accept(this)as string,value);
+                return value;
+            }
+
             if (value == "null")
             {
                 value = null;
@@ -62,6 +75,7 @@ namespace MegaScrypt
             return ret;
         }
 
+        #region ++ -- 
 
         public override object VisitBincrement(DNEScryptParser.BincrementContext context)
         {
@@ -143,19 +157,42 @@ namespace MegaScrypt
             return value;
         }
 
+        #endregion
+
         public override object VisitAssignment([NotNull] DNEScryptParser.AssignmentContext context)
         {
-            string varName = context.Id().Accept(this) as string;
+            string varName = context.children[0].Accept(this) as string;
             ITerminalNode operatorNode = context.children[1] as ITerminalNode;
 
 
-            object value = 0;
+            object value = null;
+            object x = null;
+            if (context.expression() != null)
+            {
+                value = context.expression().Accept(this);
+                x = context.expression().Accept(this);
+            }
+            else if (context.@object()!=null)
+            {
+                value = context.@object().Accept(this);
+                x = context.@object().Accept(this);
+            }
 
-               value = context.expression().Accept(this);
-               object x = context.expression().Accept(this);
-                switch (operatorNode.Symbol.Type)
+
+            switch (operatorNode.Symbol.Type)
                 {
-                    case DNEScryptParser.Equals: break;
+                    case DNEScryptParser.Equals:
+                    {
+                        if (context.objectGet() != null)
+                        {
+                            var id = context.objectGet().Id();
+                            Object ret = (Object) GetObjectGetID(id);
+                            ret.Set(id[id.Length - 1].Accept(this) as string, value);
+                            return value;
+                        }
+                    }
+                        break;
+                
                     case DNEScryptParser.DivideEquals:
                         if (value is int)
 
@@ -224,6 +261,8 @@ namespace MegaScrypt
 
         }
 
+        #region IfElseStatement
+
         public override object VisitIfStmt(DNEScryptParser.IfStmtContext context)
         {
             object result = context.expression().Accept(this);
@@ -262,6 +301,8 @@ namespace MegaScrypt
             return null;
         }
 
+        #endregion
+
         public override object VisitTerminal(ITerminalNode node)
         {
             switch (node.Symbol.Type)
@@ -295,8 +336,9 @@ namespace MegaScrypt
 
                     return s;
                 }
+                case DNEScryptParser.Null: return null;
             }
-            return base.VisitTerminal(node);
+            return (node);
         }
 
         public override object VisitExpression([NotNull] DNEScryptParser.ExpressionContext context)
@@ -305,7 +347,6 @@ namespace MegaScrypt
             {
                 if (context.Id() != null )
                 {
-                    Console.WriteLine("hu"+ context.Id());
                     return GetValue(context.Id());
                 }
 
@@ -355,6 +396,8 @@ namespace MegaScrypt
             Console.WriteLine(exprs.Length);
             throw new NotImplementedException();
         }
+
+        #region BinaryOperations
 
         protected object BinaryOperationHandler(object objectA, object objectB, ITerminalNode node)
         {
@@ -459,6 +502,66 @@ namespace MegaScrypt
                     throw new ArgumentOutOfRangeException(nameof(node));
             }
             throw new NotImplementedException();
+        }
+
+
+        #endregion
+
+        #region Objects
+
+        public override object VisitObject([NotNull]DNEScryptParser.ObjectContext context)
+        {
+            var objectPairs = context.objectPair();
+            Object currentObject = new Object();
+
+            foreach (var VARIABLE in objectPairs)
+            {
+                object objectValue = VARIABLE.Accept(this);
+                string ID = VARIABLE.Id().Accept(this) as string;
+                currentObject.Declare(ID,objectValue);
+            }
+
+            return currentObject;
+        }
+
+        public override object VisitObjectPair([NotNull]DNEScryptParser.ObjectPairContext context)
+        {
+            if (context.expression() != null)
+            {
+                return context.expression().Accept(this);
+            }
+            else if (context.@object() != null)
+            {
+                return context.@object().Accept(this);
+            }
+            throw new InvalidOperationException("Invalid Operation");
+        }
+
+        public override object VisitObjectGet(DNEScryptParser.ObjectGetContext context)
+        {
+            var idList = context.Id();
+            object current = target;
+            foreach (var id in idList)
+            {
+                object value = ((Object)current).Get(id.Accept(this) as string);
+                current = value;
+            }
+
+            return current;
+        }
+
+        #endregion
+
+        private object GetObjectGetID(ITerminalNode[] node)
+        {
+            object current = target;
+            for (int i=0; i <node.Length-1; i++)
+            {
+                object value = ((Object) current).Get(node[i].Accept(this) as string);
+                current = value;
+            }
+
+            return current;
         }
     }
 }
