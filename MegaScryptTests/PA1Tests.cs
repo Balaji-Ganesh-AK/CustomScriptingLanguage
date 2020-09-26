@@ -1,5 +1,5 @@
-using NUnit.Framework;
 using MegaScrypt;
+using NUnit.Framework;
 
 namespace MegaScryptTests
 {
